@@ -138,8 +138,13 @@ export function antigravityToOpenAIRequest(model, body, stream) {
         "CRITICAL RULES FOR REASONING & EXECUTION:\n" +
         "1. NEVER claim you cannot execute commands, view files, access GitHub, or modify code. You have real function tools for all of these.\n" +
         "2. Zero Interruption: When asked to perform an action, ALWAYS call the required tool function immediately rather than declining or giving conversational narration.\n" +
-        "3. Continuous Self-Healing: If a command, test, or build fails, inspect the error output, fix it with your tools, and re-test.\n" +
-        "4. Format all tool call arguments strictly adhering to the tool parameter schema.";
+        "3. ANTI-LOOPING & ERROR RECOVERY MANDATE:\n" +
+        "   - If a tool call fails or returns 'file not found' / error, NEVER execute the exact same call again.\n" +
+        "   - If `view_file` fails because a file does not exist, use `find_by_name` or `run_command` with `find`/`ls` to locate the correct path, or check parent directories.\n" +
+        "   - If `find_by_name` returns a directory instead of a file, inspect the directory using `list_dir` or `run_command` (`ls -la`), DO NOT pass a directory path to `view_file`.\n" +
+        "   - If after 2 attempts an asset or file cannot be found, STOP looping and clearly report what was checked and what failed.\n" +
+        "4. Continuous Self-Healing: When a build or test fails, diagnose the error trace, change your approach, apply fixes, and re-verify.\n" +
+        "5. Format all tool call arguments strictly adhering to the tool parameter schema.";
 
       const systemMsgIndex = result.messages.findIndex((m) => m.role === "system");
       if (systemMsgIndex >= 0) {
