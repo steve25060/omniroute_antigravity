@@ -66,7 +66,7 @@ omniroute keys list
 
 ### Method 3: Environment Variables in `.env` (Headless & Docker)
 
-OmniRoute automatically reads environment variables from `/home/stavan/omniroute/.env` upon startup.
+OmniRoute automatically reads environment variables from `.env` in the repository root or `~/.omniroute/.env` upon startup.
 
 - In OmniRoute v3.8+, native fallbacks are provided for `NVIDIA_API_KEY`, `DEEPSEEK_API_KEY`, and `GEMINI_API_KEY` (alias `GOOGLE_API_KEY`).
 - For providers whose static env keys were migrated into the encrypted database (`GROQ_API_KEY`, `CEREBRAS_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`), declaring them in `.env` allows one-step CLI synchronization:
@@ -356,10 +356,10 @@ OmniRoute automatically reads environment variables from `/home/stavan/omniroute
 
 ---
 
-## Ready-to-Use `/home/stavan/omniroute/.env` Template
-
-Copy and paste the snippet below into `/home/stavan/omniroute/.env`:
-
+## Ready-to-Use `.env` Template
+ 
+Copy and paste the snippet below into `.env` (or `~/.omniroute/.env`):
+ 
 ```env
 # ═══════════════════════════════════════════════════════════════════════════════
 # OMNIROUTE MASTER FREE-TIER PROVIDER CREDENTIALS
@@ -401,8 +401,9 @@ set -e
 echo "=== Registering OmniRoute Free Providers ==="
 
 # Load environment variables from .env
-if [ -f "/home/stavan/omniroute/.env" ]; then
-  export $(grep -v '^#' /home/stavan/omniroute/.env | xargs -d '\n')
+ENV_FILE="${OMNIROUTE_DIR:-$HOME/.omniroute}/.env"
+if [ -f "$ENV_FILE" ]; then
+  export $(grep -v '^#' "$ENV_FILE" | xargs -d '\n')
 fi
 
 # 1. NVIDIA NIM

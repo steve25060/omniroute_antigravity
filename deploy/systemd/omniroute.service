@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-WorkingDirectory=/home/stavan/omniroute
+WorkingDirectory=%h/omniroute
 Environment=PORT=20128
 Environment=HOST=127.0.0.1
 Environment=NODE_OPTIONS="--max-old-space-size=2560"
@@ -12,7 +12,8 @@ Environment=OMNIROUTE_MEMORY_MB=2560
 Environment=RAYON_NUM_THREADS=2
 Environment=UV_THREADPOOL_SIZE=4
 Environment=OMNI_COMPRESSION_WORKERS=1
-ExecStart=/home/stavan/.config/nvm/versions/node/v24.15.0/bin/node scripts/dev/run-next.mjs dev
+EnvironmentFile=-%h/.omniroute/.env
+ExecStart=/usr/bin/env node scripts/dev/run-next.mjs dev
 Restart=always
 RestartSec=3
 TimeoutStopSec=10

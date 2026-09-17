@@ -38,7 +38,7 @@ const httpsAgent = new https.Agent({
   timeout: 120000,
 });
 
-const CERT_DIR = path.join(process.env.HOME || "/home/stavan", ".omniroute", "mitm");
+const CERT_DIR = process.env.CERT_DIR || path.join(process.env.HOME || process.cwd(), ".omniroute", "mitm");
 const SERVER_KEY = path.join(CERT_DIR, "server.key");
 const SERVER_CRT = path.join(CERT_DIR, "server.crt");
 

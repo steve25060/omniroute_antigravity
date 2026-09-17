@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 // Load environment from ~/.omniroute/.env and repo .env
-const homeEnvPath = path.join(process.env.HOME || "/home/stavan", ".omniroute", ".env");
+const homeEnvPath = path.join(process.env.HOME || process.cwd(), ".omniroute", ".env");
 const repoEnvPath = path.join(process.cwd(), ".env");
 
 function loadEnv(filePath: string) {
@@ -141,12 +141,11 @@ async function main() {
   updateEnvFile(homeEnvPath, masterKey);
   updateEnvFile(repoEnvPath, masterKey);
 
-  // 6. Update Client MCP configs
-  console.log("[6/6] Updating client MCP configs (Antigravity & Claude)...");
+  const homeDir = process.env.HOME || process.cwd();
   const mcpConfigFiles = [
-    "/home/stavan/.gemini/config/mcp_config.json",
-    "/home/stavan/.config/Antigravity IDE/User/mcp.json",
-    "/home/stavan/.claude.json",
+    path.join(homeDir, ".gemini", "config", "mcp_config.json"),
+    path.join(homeDir, ".config", "Antigravity IDE", "User", "mcp.json"),
+    path.join(homeDir, ".claude.json"),
   ];
 
   for (const mcpFile of mcpConfigFiles) {

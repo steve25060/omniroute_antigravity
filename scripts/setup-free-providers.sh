@@ -2,7 +2,10 @@
 # OmniRoute Batch Free Provider Setup
 set -e
 
-ENV_FILE="/home/stavan/omniroute/.env"
+ENV_FILE="${OMNIROUTE_ENV:-${PWD}/.env}"
+if [ ! -f "$ENV_FILE" ] && [ -f "$HOME/.omniroute/.env" ]; then
+  ENV_FILE="$HOME/.omniroute/.env"
+fi
 if [ -f "$ENV_FILE" ]; then
   echo "Loading keys from $ENV_FILE..."
   # Export variables without comments

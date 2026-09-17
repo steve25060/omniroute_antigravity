@@ -11,7 +11,7 @@ const ROOT = join(__dirname, "..");
 
 function loadEnvFiles(rootDir = ROOT) {
   const envCandidates = [
-    join(process.env.HOME || "/home/stavan", ".omniroute", ".env"),
+    join(process.env.HOME || process.cwd(), ".omniroute", ".env"),
     join(rootDir, ".env"),
   ];
   for (const envFile of envCandidates) {

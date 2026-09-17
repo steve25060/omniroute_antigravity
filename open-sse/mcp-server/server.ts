@@ -203,7 +203,7 @@ function getOmniRouteApiKey(): string {
   if (process.env.OMNIROUTE_API_KEY) return process.env.OMNIROUTE_API_KEY;
   try {
     const candidatePaths = [
-      join(process.env.HOME || "/home/stavan", ".omniroute", ".env"),
+      join(process.env.HOME || process.cwd(), ".omniroute", ".env"),
       join(process.cwd(), ".env"),
     ];
     for (const p of candidatePaths) {
