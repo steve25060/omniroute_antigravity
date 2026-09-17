@@ -91,6 +91,79 @@ function extractModel(body, url) {
   return null;
 }
 
+const OMNIROUTE_CUSTOM_MODELS = new Set([
+  "coding-titans",
+  "speed-demons",
+  "infinite-context",
+  "zero-cost-fallback",
+  "gpt-6-astra",
+  "gpt-6-astra-ultra",
+  "gpt-6-astra-max",
+  "gpt-6-astra-high",
+  "gpt-6-astra-medium",
+  "gpt-6-astra-low",
+  "gpt-5.6-sol",
+  "gpt-5.6-sol-ultra",
+  "gpt-5.6-sol-max",
+  "gpt-5.6-sol-high",
+  "gpt-5.6-sol-medium",
+  "gpt-5.6-sol-low",
+  "gpt-5.6-terra",
+  "gpt-5.6-terra-ultra",
+  "gpt-5.6-terra-max",
+  "gpt-5.6-terra-high",
+  "gpt-5.6-terra-medium",
+  "gpt-5.6-terra-low",
+  "gpt-5.6-luna",
+  "gpt-5.6-luna-max",
+  "gpt-5.6-luna-high",
+  "gpt-5.6-luna-medium",
+  "gpt-5.6-luna-low",
+  "gpt-5.5",
+  "gpt-5.5-xhigh",
+  "gpt-5.5-high",
+  "gpt-5.5-medium",
+  "gpt-5.5-low",
+  "gpt-5.3-codex-spark",
+]);
+
+function shouldInterceptToOmniRoute(model, url) {
+  if (!model) return false;
+
+  // Never intercept non-streaming unary RPCs (Antigravity expects raw JSON/Protobuf, not SSE)
+  const isStreaming =
+    url.includes("streamGenerateContent") ||
+    url.includes("StreamGenerateChat") ||
+    url.includes("alt=sse");
+  if (!isStreaming) return false;
+
+  // Never intercept native Google/Gemini models (used by Antigravity core, subagents, websearch, grounding)
+  if (model.startsWith("gemini-") || model.startsWith("models/gemini-")) {
+    return false;
+  }
+
+  // Never intercept native Google CloudCode PA hosted models
+  if (
+    model === "claude-sonnet-4-6" ||
+    model === "claude-opus-4-6" ||
+    model === "gpt-oss-120b-medium"
+  ) {
+    return false;
+  }
+
+  // Intercept explicit custom OmniRoute combos
+  if (OMNIROUTE_CUSTOM_MODELS.has(model)) {
+    return true;
+  }
+
+  // Intercept custom OpenAI Codex models
+  if (model.startsWith("gpt-")) {
+    return true;
+  }
+
+  return false;
+}
+
 // Internal HTTP server that receives decrypted requests for TARGET_HOSTS
 const internalApp = http.createServer(async (req, res) => {
   const host = (req.headers.host || "cloudcode-pa.googleapis.com").split(":")[0];
@@ -111,13 +184,9 @@ const internalApp = http.createServer(async (req, res) => {
   }
 
   const model = extractModel(bodyJson, url);
-  const isGen = isGenerationRequest(url);
+  const shouldIntercept = shouldInterceptToOmniRoute(model, url);
 
-  // RULE: Keep Gemini 3.8 models 100% native (passthrough to Google)
-  const isNativeGemini38 =
-    model && (model.startsWith("gemini-3.8") || model.startsWith("models/gemini-3.8"));
-
-  if (isGen && !isNativeGemini38) {
+  if (shouldIntercept) {
     console.log(`[Bridge] 🔀 INTERCEPTING -> OmniRoute: ${model || "default"} (${url})`);
 
     // Forward to OmniRoute /v1/antigravity

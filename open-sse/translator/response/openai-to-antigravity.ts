@@ -73,7 +73,7 @@ export function openaiToAntigravityResponse(chunk, state) {
     const indices = Object.keys(state._toolCallAccum);
     for (const idx of indices) {
       const accum = state._toolCallAccum[idx];
-      let args = {};
+      let args: Record<string, unknown> = {};
       try {
         args = JSON.parse(accum.arguments);
       } catch {
@@ -81,9 +81,8 @@ export function openaiToAntigravityResponse(chunk, state) {
       }
       parts.push({
         functionCall: {
-          id: accum.id || `call_${Date.now()}_${idx}`,
           name: accum.name,
-          args,
+          args: sanitizeFunctionArgs(args),
         },
       });
     }
@@ -140,6 +139,57 @@ export function openaiToAntigravityResponse(chunk, state) {
   }
 
   return { response };
+}
+
+function sanitizeFunctionArgs(args: Record<string, unknown>): Record<string, unknown> {
+  if (!args || typeof args !== "object") return args;
+  const result: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(args)) {
+    result[key] = sanitizeArgValue(value);
+  }
+  return result;
+}
+
+function sanitizeArgValue(val: unknown): unknown {
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (trimmed === "true") return true;
+    if (trimmed === "false") return false;
+    if (
+      /^-?\d+(\.\d+)?$/.test(trimmed) &&
+      !isNaN(Number(trimmed)) &&
+      Number.isFinite(Number(trimmed))
+    ) {
+      if (trimmed === "0" || !trimmed.startsWith("0")) {
+        return Number(trimmed);
+      }
+    }
+    if (
+      (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+      (trimmed.startsWith("[") && trimmed.endsWith("]"))
+    ) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return sanitizeArgValue(parsed);
+      } catch {}
+    }
+    if (trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length >= 2) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (typeof parsed === "string") {
+          return sanitizeArgValue(parsed);
+        }
+      } catch {}
+    }
+    return val;
+  }
+  if (Array.isArray(val)) {
+    return val.map(sanitizeArgValue);
+  }
+  if (val && typeof val === "object") {
+    return sanitizeFunctionArgs(val as Record<string, unknown>);
+  }
+  return val;
 }
 
 // Register

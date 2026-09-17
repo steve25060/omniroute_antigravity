@@ -147,3 +147,55 @@ test("OpenAI -> Antigravity: content_filter maps to SAFETY", () => {
 test("OpenAI -> Antigravity: null chunks are ignored", () => {
   assert.equal(openaiToAntigravityResponse(null, {}), null);
 });
+
+test("OpenAI -> Antigravity: functionCall args are sanitized from stringified booleans, numbers, objects and quotes", () => {
+  const state = {};
+  const final = openaiToAntigravityResponse(
+    {
+      id: "chatcmpl-5",
+      model: "gpt-4.1",
+      choices: [
+        {
+          index: 0,
+          delta: {
+            tool_calls: [
+              {
+                index: 0,
+                id: "call_9",
+                type: "function",
+                function: {
+                  name: "write_to_file",
+                  arguments: JSON.stringify({
+                    query: '"websearch"',
+                    Overwrite: "false",
+                    WaitMsBeforeAsync: "1000",
+                    ArtifactMetadata: '{"UserFacing":true,"Summary":"test"}',
+                    TargetFile: '"/tmp/foo.py"',
+                  }),
+                },
+              },
+            ],
+          },
+          finish_reason: "tool_calls",
+        },
+      ],
+    },
+    state
+  );
+
+  assert.deepEqual(final.response.candidates[0].content.parts[0], {
+    functionCall: {
+      name: "write_to_file",
+      args: {
+        query: "websearch",
+        Overwrite: false,
+        WaitMsBeforeAsync: 1000,
+        ArtifactMetadata: {
+          UserFacing: true,
+          Summary: "test",
+        },
+        TargetFile: "/tmp/foo.py",
+      },
+    },
+  });
+});
