@@ -1,0 +1,18 @@
+[Unit]
+Description=OmniRoute Antigravity Bridge Proxy
+After=network.target omniroute.service
+Wants=omniroute.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/stavan/omniroute
+Environment=BRIDGE_PORT=20129
+Environment=ROUTER_URL=http://127.0.0.1:20128/v1/antigravity
+Environment=ROUTER_API_KEY=sk-9bc8ca4afee56673-476adb-8148ef52
+ExecStart=/home/stavan/.config/nvm/versions/node/v24.15.0/bin/node bin/antigravity-bridge.mjs
+Restart=always
+RestartSec=3
+LimitNOFILE=65536
+
+[Install]
+WantedBy=default.target
