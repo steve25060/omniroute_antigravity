@@ -149,7 +149,9 @@ export function antigravityToOpenAIRequest(model, body, stream) {
       const systemMsgIndex = result.messages.findIndex((m) => m.role === "system");
       if (systemMsgIndex >= 0) {
         result.messages[systemMsgIndex].content =
-          String(result.messages[systemMsgIndex].content || "") + AGENTIC_TOOL_MANDATE;
+          AGENTIC_TOOL_MANDATE.trim() +
+          "\n\n" +
+          String(result.messages[systemMsgIndex].content || "");
       } else {
         result.messages.unshift({ role: "system", content: AGENTIC_TOOL_MANDATE.trim() });
       }

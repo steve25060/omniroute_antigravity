@@ -38,7 +38,8 @@ const httpsAgent = new https.Agent({
   timeout: 120000,
 });
 
-const CERT_DIR = process.env.CERT_DIR || path.join(process.env.HOME || process.cwd(), ".omniroute", "mitm");
+const CERT_DIR =
+  process.env.CERT_DIR || path.join(process.env.HOME || process.cwd(), ".omniroute", "mitm");
 const SERVER_KEY = path.join(CERT_DIR, "server.key");
 const SERVER_CRT = path.join(CERT_DIR, "server.crt");
 
@@ -220,6 +221,49 @@ const internalApp = http.createServer(async (req, res) => {
                 };
               }
 
+              if (data.models["claude-sonnet-4-6"]) {
+                const baseTemplate = data.models["claude-sonnet-4-6"];
+                const codexList = [
+                  { id: "gpt-6-astra", name: "GPT 6 Astra" },
+                  { id: "gpt-6-astra-ultra", name: "GPT 6 Astra (Ultra)" },
+                  { id: "gpt-6-astra-max", name: "GPT 6 Astra (Max)" },
+                  { id: "gpt-6-astra-high", name: "GPT 6 Astra (High)" },
+                  { id: "gpt-6-astra-medium", name: "GPT 6 Astra (Medium)" },
+                  { id: "gpt-6-astra-low", name: "GPT 6 Astra (Low)" },
+                  { id: "gpt-5.6-sol", name: "GPT 5.6 Sol" },
+                  { id: "gpt-5.6-sol-ultra", name: "GPT 5.6 Sol (Ultra)" },
+                  { id: "gpt-5.6-sol-max", name: "GPT 5.6 Sol (Max)" },
+                  { id: "gpt-5.6-sol-high", name: "GPT 5.6 Sol (High)" },
+                  { id: "gpt-5.6-sol-medium", name: "GPT 5.6 Sol (Medium)" },
+                  { id: "gpt-5.6-sol-low", name: "GPT 5.6 Sol (Low)" },
+                  { id: "gpt-5.6-terra", name: "GPT 5.6 Terra" },
+                  { id: "gpt-5.6-terra-ultra", name: "GPT 5.6 Terra (Ultra)" },
+                  { id: "gpt-5.6-terra-max", name: "GPT 5.6 Terra (Max)" },
+                  { id: "gpt-5.6-terra-high", name: "GPT 5.6 Terra (High)" },
+                  { id: "gpt-5.6-terra-medium", name: "GPT 5.6 Terra (Medium)" },
+                  { id: "gpt-5.6-terra-low", name: "GPT 5.6 Terra (Low)" },
+                  { id: "gpt-5.6-luna", name: "GPT 5.6 Luna" },
+                  { id: "gpt-5.6-luna-max", name: "GPT 5.6 Luna (Max)" },
+                  { id: "gpt-5.6-luna-high", name: "GPT 5.6 Luna (High)" },
+                  { id: "gpt-5.6-luna-medium", name: "GPT 5.6 Luna (Medium)" },
+                  { id: "gpt-5.6-luna-low", name: "GPT 5.6 Luna (Low)" },
+                  { id: "gpt-5.5", name: "GPT 5.5" },
+                  { id: "gpt-5.5-xhigh", name: "GPT 5.5 (xHigh)" },
+                  { id: "gpt-5.5-high", name: "GPT 5.5 (High)" },
+                  { id: "gpt-5.5-medium", name: "GPT 5.5 (Medium)" },
+                  { id: "gpt-5.5-low", name: "GPT 5.5 (Low)" },
+                  { id: "gpt-5.3-codex-spark", name: "GPT 5.3 Codex Spark" },
+                ];
+
+                for (const cm of codexList) {
+                  data.models[cm.id] = {
+                    ...baseTemplate,
+                    displayName: `Codex: ${cm.name}`,
+                    descriptionText: `OpenAI Codex CLI Model (${cm.name}) routed through OmniRoute`,
+                  };
+                }
+              }
+
               // Prepend custom models to agentModelSorts recommended group
               if (
                 Array.isArray(data.agentModelSorts) &&
@@ -230,6 +274,35 @@ const internalApp = http.createServer(async (req, res) => {
                   "speed-demons",
                   "infinite-context",
                   "zero-cost-fallback",
+                  "gpt-6-astra",
+                  "gpt-6-astra-ultra",
+                  "gpt-6-astra-max",
+                  "gpt-6-astra-high",
+                  "gpt-6-astra-medium",
+                  "gpt-6-astra-low",
+                  "gpt-5.6-sol",
+                  "gpt-5.6-sol-ultra",
+                  "gpt-5.6-sol-max",
+                  "gpt-5.6-sol-high",
+                  "gpt-5.6-sol-medium",
+                  "gpt-5.6-sol-low",
+                  "gpt-5.6-terra",
+                  "gpt-5.6-terra-ultra",
+                  "gpt-5.6-terra-max",
+                  "gpt-5.6-terra-high",
+                  "gpt-5.6-terra-medium",
+                  "gpt-5.6-terra-low",
+                  "gpt-5.6-luna",
+                  "gpt-5.6-luna-max",
+                  "gpt-5.6-luna-high",
+                  "gpt-5.6-luna-medium",
+                  "gpt-5.6-luna-low",
+                  "gpt-5.5",
+                  "gpt-5.5-xhigh",
+                  "gpt-5.5-high",
+                  "gpt-5.5-medium",
+                  "gpt-5.5-low",
+                  "gpt-5.3-codex-spark",
                 ];
                 const existing = data.agentModelSorts[0].groups[0].modelIds;
                 data.agentModelSorts[0].groups[0].modelIds = [
