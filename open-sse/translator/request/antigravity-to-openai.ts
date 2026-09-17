@@ -92,7 +92,7 @@ export function antigravityToOpenAIRequest(model, body, stream) {
     }
   }
 
-  // Tools
+  // Tools & Tool Choice
   if (req.tools && Array.isArray(req.tools)) {
     result.tools = [];
     for (const tool of req.tools) {
@@ -110,6 +110,42 @@ export function antigravityToOpenAIRequest(model, body, stream) {
             },
           });
         }
+      }
+    }
+
+    if (result.tools.length > 0) {
+      result.tool_choice = "auto";
+      const toolConfig = req.toolConfig?.functionCallingConfig;
+      if (toolConfig?.mode === "ANY" || toolConfig?.mode === "REQUIRED") {
+        result.tool_choice = "required";
+      } else if (toolConfig?.mode === "NONE") {
+        result.tool_choice = "none";
+      }
+
+      // Inject Agentic Execution Mandate so third-party / open-weight models understand
+      // they possess real tool calling capabilities to execute bash, view files, write files,
+      // and search, rather than declining or apologizing.
+      const AGENTIC_TOOL_MANDATE =
+        "\n\n[MANDATORY TOOL EXECUTION INSTRUCTIONS]\n" +
+        "You are Antigravity, an autonomous agent running in the user's Linux terminal with direct tool access.\n" +
+        "You MUST invoke your functions to execute tasks:\n" +
+        "- Use `run_command` for terminal commands, bash execution, git operations (status, commit, push), builds, and tests.\n" +
+        "- Use `view_file` to inspect files.\n" +
+        "- Use `write_to_file` to create new files.\n" +
+        "- Use `replace_file_content` to make surgical edits.\n" +
+        "- Use `grep_search` or `find_by_name` to search files.\n" +
+        "- Use `search_web` to search the internet for current docs.\n" +
+        "RULES:\n" +
+        "1. NEVER claim you cannot execute commands, view files, access GitHub, or modify code. You have real function tools for these actions.\n" +
+        "2. When asked to perform an action, ALWAYS call the appropriate tool via function calling rather than declining or explaining.\n" +
+        "3. Act directly and autonomously without conversational filler.";
+
+      const systemMsgIndex = result.messages.findIndex((m) => m.role === "system");
+      if (systemMsgIndex >= 0) {
+        result.messages[systemMsgIndex].content =
+          String(result.messages[systemMsgIndex].content || "") + AGENTIC_TOOL_MANDATE;
+      } else {
+        result.messages.unshift({ role: "system", content: AGENTIC_TOOL_MANDATE.trim() });
       }
     }
   }
@@ -317,18 +353,18 @@ function convertContent(content) {
   // nothing is dropped (previously only the tool messages survived).
   if (toolResults.length > 0) {
     if (toolCalls.length > 0 || textParts.length > 0 || reasoningContent) {
-      const assistantMsg: JsonRecord = { role: "assistant" };
+      const msg: JsonRecord = { role: toolCalls.length > 0 ? "assistant" : role };
       if (textParts.length > 0) {
-        assistantMsg.content =
+        msg.content =
           textParts.length === 1 && textParts[0].type === "text" ? textParts[0].text : textParts;
       }
       if (reasoningContent) {
-        assistantMsg.reasoning_content = reasoningContent;
+        msg.reasoning_content = reasoningContent;
       }
       if (toolCalls.length > 0) {
-        assistantMsg.tool_calls = toolCalls;
+        msg.tool_calls = toolCalls;
       }
-      return [...toolResults, assistantMsg];
+      return [...toolResults, msg];
     }
     return toolResults;
   }
