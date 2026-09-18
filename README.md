@@ -578,6 +578,7 @@ the current catalog at **[radar.omniroute.online/planos](https://radar.omniroute
 - **🧭 Smarter auto-routing** — `auto/<category>:<tier>` combos, **Fusion** (model panel + judge), task-aware routing, per-request model / mode / USD-budget overrides. → [Auto-Combo](docs/routing/AUTO-COMBO.md)
 - **🗜️ Pluggable compression** — 12 composable engines + Compression Studios: LLMLingua-2, two-tier Ultra, omniglyph, per-step fidelity gate, GCF v3.2, drag-reorder editor. → [Compression](docs/compression/COMPRESSION_ENGINES.md)
 - **🕵️ Transparent MITM decrypt (TPROXY)** — capture CLIs that ignore proxy env vars, with a per-SNI CA + trust-store installer. → [MITM/TPROXY](docs/security/MITM-TPROXY-DECRYPT.md)
+- **🛰️ Antigravity & IDE Model Bridge** — dynamic catalog injection for Google Antigravity CLI & IDE. Configured combos and auto-groups (`auto/*`) appear natively in the `/model` selector, backed by selective proxy routing that prevents Google Gemini quota leakage and auto-heals decommissioned upstream models.
 - **💸 Cost telemetry everywhere** — `X-OmniRoute-*` cost/usage headers on every endpoint, cache-HIT savings header, per-key USD spend quotas. → [API Reference](docs/reference/API_REFERENCE.md)
 - **🧠 Memory you control** — off by default, opt-in int8 vector quantization + typed decay, per-request `x-omniroute-no-memory`. → [Memory](docs/frameworks/MEMORY.md)
 - **🛡️ Security** — prompt-injection guard on every LLM route (red-team suite), opt-in credential-masking guardrail (redacts leaked API keys/secrets in both directions), free DuckDuckGo last-resort web search, and an optional OIDC login gate for the dashboard (password login always stays available). → [Guardrails](docs/security/GUARDRAILS.md)
@@ -639,6 +640,8 @@ the current catalog at **[radar.omniroute.online/planos](https://radar.omniroute
 </div>
 
 <sub>📖 Per-tool setup for all 36 tools (26 CLI Code's + 10 CLI Agents) → [`docs/reference/CLI-TOOLS.md`](docs/reference/CLI-TOOLS.md) · 🧩 OpenCode plugin → [`@omniroute/opencode-provider`](https://www.npmjs.com/package/@omniroute/opencode-provider)</sub>
+
+> 💡 **Google Antigravity**: Supported natively via dynamic catalog injection and selective bridge (`bin/antigravity-bridge.mjs`). Switch to any OmniRoute auto group (`auto/*`) or configured provider model directly in Antigravity's `/model` selector with zero Google Gemini quota consumption.
 
 </div>
 
